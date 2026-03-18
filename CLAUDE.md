@@ -4,7 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## info about the projet
 
-El objetivo de este proyecto es adaptar un ejemplo de uso de la libreria open source pygimli para realizar una inversion de datos ERT con topografìa, pero sobre datos que provienen del sensor IRIS Syscal Pro Switch Multi-electrode geoelectrical equipment with 10 m electrode spacing cables. La estructura del repo es la siguiente:
+El objetivo de este proyecto es adaptar un ejemplo de uso de la libreria open source pygimli donde se realiza una inversion de datos ERT con topografìa, haciendolo funcionar sobre datos que provienen del sensor IRIS Syscal Pro Switch Multi-electrode geoelectrical equipment with 10 m electrode spacing cables. 
+
+El archivo de datos del ejemplo y el archivo de datos de trabajo difieren en su estructura y la idea es hacer un pre-proceso al cargar el dataContairnerERT para que el proceso subsiguiente funcione
+
+El script de ejemplo de partida esta en examples/plot_02_ert_field_data.py
+El archivo con datos que espera este ejemplo es: examples/slagdump.ohm
+El archivo de trabajo sobre el que hay que editar, el responsable de hacer la adaptacion es src/inversion_WS48.py
+El archivo con datos para el script de trabajo esta en data/greenland/WS-48-16.dat
+
+La estructura del repo es la siguiente:
 
 ├── CLAUDE.md
 ├── data
@@ -33,16 +42,7 @@ El objetivo de este proyecto es adaptar un ejemplo de uso de la libreria open so
 │   └── 05_modelo_resistividad.png
 ├── README.md
 └── src
-    └── inversion_WS48.py
-
-
-El script de ejemplo de partida esta en examples/plot_02_ert_field_data.py
-El archivo con datos que espera este ejemplo es: examples/slagdump.ohm
-El archivo de trabajo sobre el que se hace la adaptacion es src/inversion_WS48.py
-El archivo con datos para el script de trabajo esta en data/greenland/WS-48-16.dat
-
-
-El archivo de datos del ejemplo y el archivo de datos de trabajo difieren en su estructura y la idea es hacer un pre-proceso al cargar el dataContairnerERT para que el proceso subsiguiente funcione
+    └── inversion_WS48.py (archivo principal)
 
 
 ## Development Guidelines for Claude
