@@ -10,8 +10,9 @@ El archivo de datos del ejemplo y el archivo de datos de trabajo difieren en su 
 
 El script de ejemplo de partida esta en examples/plot_02_ert_field_data.py
 El archivo con datos que espera este ejemplo es: examples/slagdump.ohm
-El archivo de trabajo sobre el que hay que editar, el responsable de hacer la adaptacion es src/inversion_WS48.py
-El archivo con datos para el script de trabajo esta en data/greenland/WS-48-16.dat
+El archivo de trabajo sobre el que hay que editar, el responsable de hacer la adaptacion es src/inversion.py
+El archivo con datos para el script de trabajo esta en data/greenland/WS_3_20_cor.dat
+Este archivo incluye datos de chargeability (IP) en mV/V además de resistividad aparente
 
 La estructura del repo es la siguiente:
 
@@ -42,7 +43,7 @@ La estructura del repo es la siguiente:
 │   └── 05_modelo_resistividad.png
 ├── README.md
 └── src
-    └── inversion_WS48.py (archivo principal)
+    └── inversion.py (archivo principal)
 
 
 ## Development Guidelines for Claude

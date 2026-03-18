@@ -1,10 +1,11 @@
 """
-Inversión ERT completa para archivo WS-48-16.dat
+Inversión ERT completa para archivo WS_3_20_cor.dat
 Configuración Wenner-Schlumberger con roll-along
 Sin topografía (z = 0 para todos los electrodos)
+Incluye datos de chargeability (IP) en mV/V
 
 Flujo:
-    1. Parseo del .dat  → coordenadas absolutas + rhoa
+    1. Parseo del .dat  → coordenadas absolutas + rhoa + chargeability
     2. Construcción del DataContainer de pyGIMLi
     3. Factores geométricos (analíticos, sin topo)
     4. Estimación de errores
@@ -25,7 +26,7 @@ from pygimli.physics import ert
 # CONFIGURACIÓN
 # ---------------------------------------------------------------------------
 
-DAT_FILE = os.path.join(os.path.dirname(__file__), '../data/greenland/WS-48-16.dat')
+DAT_FILE = os.path.join(os.path.dirname(__file__), '../data/greenland/WS_3_20_cor.dat')
 IMG_DIR  = os.path.join(os.path.dirname(__file__), '../img')
 os.makedirs(IMG_DIR, exist_ok=True)
 
@@ -58,14 +59,18 @@ def parse_dat(filepath):
         4: descripción del tipo de dato
         5: tipo (0 = rhoa, 1 = resistencia)
         6: número de mediciones
-        7-8: parámetros adicionales
+        7: parámetro adicional
+        8: flag de chargeability (0 = sin IP, 1 = con IP en mV/V)
 
-    Estructura de cada línea de datos (a partir de línea 9):
+    Si hay chargeability (línea 8 == 1), hay 3 líneas extra de cabecera:
+        9:  nombre del parámetro IP (e.g. "Chargeability")
+        10: unidad (e.g. "mV/V")
+        11: ventana de integración (e.g. "0.06,0.5")
+    Y los datos empiezan en línea 12 con 11 campos:
+        4  x_A  z_A  x_B  z_B  x_M  z_M  x_N  z_N  rhoa  chargeability
+
+    Sin chargeability los datos empiezan en línea 9 con 10 campos:
         4  x_A  z_A  x_B  z_B  x_M  z_M  x_N  z_N  valor
-
-        Donde A, B = electrodos de corriente
-              M, N = electrodos de potencial
-              valor = rhoa [Ohm·m] si tipo==0, o R [Ohm] si tipo==1
     """
     print(f"\n{'='*60}")
     print(f"  Leyendo: {os.path.basename(filepath)}")
@@ -74,21 +79,27 @@ def parse_dat(filepath):
     with open(filepath, 'r', encoding='latin-1') as f:
         lines = [l.strip() for l in f.readlines()]
 
-    meas_type = int(lines[5])   # 0=rhoa, 1=resistencia
-    n_data    = int(lines[6])
+    meas_type   = int(lines[5])   # 0=rhoa, 1=resistencia
+    n_data      = int(lines[6])
+    has_ip      = int(lines[8])   # 0=sin IP, 1=con chargeability
+    data_start  = 12 if has_ip else 9
+    n_fields    = 11 if has_ip else 10
+
     print(f"  Tipo de dato   : {'resistividad aparente [Ohm·m]' if meas_type == 0 else 'resistencia [Ohm]'}")
     print(f"  Mediciones     : {n_data}")
+    print(f"  Chargeability  : {'sí (mV/V)' if has_ip else 'no'}")
 
     raw_meas = []
-    for line in lines[9:]:
+    for line in lines[data_start:]:
         parts = line.split()
-        if len(parts) == 10 and parts[0] == '4':
+        if len(parts) == n_fields and parts[0] == '4':
             xA, zA = float(parts[1]), float(parts[2])
             xB, zB = float(parts[3]), float(parts[4])
             xM, zM = float(parts[5]), float(parts[6])
             xN, zN = float(parts[7]), float(parts[8])
             val     = float(parts[9])
-            raw_meas.append(((xA, zA), (xB, zB), (xM, zM), (xN, zN), val))
+            ip      = float(parts[10]) if has_ip else None
+            raw_meas.append(((xA, zA), (xB, zB), (xM, zM), (xN, zN), val, ip))
 
     if len(raw_meas) != n_data:
         print(f"  ADVERTENCIA: se esperaban {n_data} mediciones pero se parsearon {len(raw_meas)}")
@@ -109,7 +120,7 @@ def parse_dat(filepath):
 
     # Convertir coordenadas a índices 0-based
     meas = []
-    for (pA, pB, pM, pN, val) in raw_meas:
+    for (pA, pB, pM, pN, val, ip) in raw_meas:
         meas.append({
             'a':    pos_to_idx[pA],
             'b':    pos_to_idx[pB],
@@ -117,16 +128,17 @@ def parse_dat(filepath):
             'n':    pos_to_idx[pN],
             'rhoa': val if meas_type == 0 else None,
             'r':    val if meas_type == 1 else None,
+            'ip':   ip,
         })
 
-    return sensors, meas, meas_type
+    return sensors, meas, meas_type, has_ip
 
 
 # ---------------------------------------------------------------------------
 # 2. CONSTRUCCIÓN DEL DataContainer
 # ---------------------------------------------------------------------------
 
-def build_data_container(sensors, meas, meas_type):
+def build_data_container(sensors, meas, meas_type, has_ip=False):
     """
     Construye un pg.DataContainer con sensores e índices de electrodos.
 
@@ -178,6 +190,11 @@ def build_data_container(sensors, meas, meas_type):
         r_arr = np.array([m['r'] for m in meas], dtype=float)
         data['r'] = pg.Vector(r_arr)
 
+    # Cargar chargeability si está presente
+    if has_ip:
+        ip_arr = np.array([m['ip'] for m in meas], dtype=float)
+        data['ip'] = pg.Vector(ip_arr)
+
     # Marcar como válidas las mediciones con valor positivo
     if meas_type == 0:
         data.markValid(data['rhoa'] > 0)
@@ -195,10 +212,10 @@ def build_data_container(sensors, meas, meas_type):
 if __name__ == '__main__':
 
     # --- 1. Parseo ---
-    sensors, meas, meas_type = parse_dat(DAT_FILE)
+    sensors, meas, meas_type, has_ip = parse_dat(DAT_FILE)
 
     # --- 2. DataContainer ---
-    data = build_data_container(sensors, meas, meas_type)
+    data = build_data_container(sensors, meas, meas_type, has_ip)
 
     # --- 3. Visualización inicial: posición de electrodos ---
     fig, ax = plt.subplots(figsize=(12, 2))
@@ -291,7 +308,7 @@ if __name__ == '__main__':
         cMap     = 'Spectral_r',
         logScale = True,
     )
-    ax.set_title('Modelo de resistividad — WS-48-16')
+    ax.set_title('Modelo de resistividad — WS_3_20_cor')
     ax.set_xlabel('Distancia [m]')
     ax.set_ylabel('Profundidad [m]')
     plt.tight_layout()
