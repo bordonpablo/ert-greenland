@@ -4,7 +4,46 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## info about the projet
 
-El objetivo de este proyecto es adaptar un ejemplo de
+El objetivo de este proyecto es adaptar un ejemplo de uso de la libreria open source pygimli para realizar una inversion de datos ERT con topografìa, pero sobre datos que provienen del sensor IRIS Syscal Pro Switch Multi-electrode geoelectrical equipment with 10 m electrode spacing cables. La estructura del repo es la siguiente:
+
+├── CLAUDE.md
+├── data
+│   ├── greenland
+│   │   ├── WS_05_xx.bin
+│   │   ├── WS_05_xx_cor.dat
+│   │   ├── WS_3_20.bin
+│   │   ├── WS_3_20_cor.dat
+│   │   ├── WS-48-16.bin
+│   │   └── WS-48-16.dat
+│   └── Mitterberg
+│       ├── P2_Höhe.txt
+│       ├── WS-5-42.dat
+│       └── WS-5-42_topo.dat
+├── doc
+│   └── INSTALL.md
+├── examples
+│   ├── plot_02_ert_field_data.ipynb
+│   ├── plot_02_ert_field_data.py
+│   └── slagdump.ohm
+├── img
+│   ├── 01_electrodos.png
+│   ├── 02_pseudoseccion.png
+│   ├── 03_errores.png
+│   ├── 04_resultado_y_ajuste.png
+│   └── 05_modelo_resistividad.png
+├── README.md
+└── src
+    └── inversion_WS48.py
+
+
+El script de ejemplo de partida esta en examples/plot_02_ert_field_data.py
+El archivo con datos que espera este ejemplo es: examples/slagdump.ohm
+El archivo de trabajo sobre el que se hace la adaptacion es src/inversion_WS48.py
+El archivo con datos para el script de trabajo esta en data/greenland/WS-48-16.dat
+
+
+El archivo de datos del ejemplo y el archivo de datos de trabajo difieren en su estructura y la idea es hacer un pre-proceso al cargar el dataContairnerERT para que el proceso subsiguiente funcione
+
 
 ## Development Guidelines for Claude
 

@@ -25,7 +25,7 @@ from pygimli.physics import ert
 # CONFIGURACIÓN
 # ---------------------------------------------------------------------------
 
-DAT_FILE = os.path.join(os.path.dirname(__file__), '../data/WS-48-16.dat')
+DAT_FILE = os.path.join(os.path.dirname(__file__), '../data/greenland/WS-48-16.dat')
 IMG_DIR  = os.path.join(os.path.dirname(__file__), '../img')
 os.makedirs(IMG_DIR, exist_ok=True)
 
