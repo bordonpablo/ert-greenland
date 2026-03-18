@@ -1,4 +1,4 @@
-# ERT Greenland - pyGIMLi
+# ERT pyGIMLi
 
 El objetivo del proyecto es adaptar los datos de salida del equipo ??? a la estructura de datos esperada por la libreria [pyGIMLi](https://www.pygimli.org/index.html) para realizar inversiones de **Electrical Resistivity Tomography**.
 
